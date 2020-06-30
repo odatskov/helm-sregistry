@@ -1,0 +1,23 @@
+{{- if .Values.config.nginx.ingress -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  labels:
+  {{- include "sregistry.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: {{ .Values.config.domainName | quote }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx
+          servicePort: nginx
+{{- end }}

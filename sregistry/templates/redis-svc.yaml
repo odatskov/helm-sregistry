@@ -1,0 +1,17 @@
+{{- if .Values.config.redis.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.config.redis.name }}
+  labels:
+  {{- include "sregistry.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+  {{- include "sregistry.selectorLabels" . | nindent 4 }}
+  ports:
+  - port: {{ .Values.config.redis.port }}
+    targetPort: redis
+    protocol: TCP
+    name: redis
+{{- end }}

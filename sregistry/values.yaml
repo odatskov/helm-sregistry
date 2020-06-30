@@ -1,0 +1,84 @@
+# Default values for sregistry.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+storageClassName: ""
+
+pullPolicy: IfNotPresent
+replicaCount: 1
+
+config:
+
+  domainName:   "localhost"
+  registryName: "Tacosaurus Computing Center"
+  registryUri:  "taco"
+ 
+  uwsgi:
+    host: "uwsgi"
+    port: 3031
+
+  database:
+    enabled: true
+    resources: {}
+
+    name: "postgres"
+    user: "postgres"
+    host: "db"
+    port: "5432"
+
+  redis:
+    enabled: true
+    name: "redis"
+    resources: {}
+
+    image: "redis:latest"
+    port:  6379
+
+  minio:
+    enabled: true
+    resources: {}
+    image: minio/minio
+    
+    server: "minio"
+    port: 9000
+    external: "127.0.0.1"
+    bucket: "sregistry"
+    region: "us-east-1"
+
+  auth:
+    google:    "False"
+    twitter:   "False"
+    github:    "True"
+    gitlab:    "False"
+    bitbucket: "False"
+
+  sregistry:
+    image: "quay.io/vanessa/sregistry:1.1.26"
+    port: 8080
+
+  nginx:
+    ingress: true
+    type: ClusterIP
+
+    image: quay.io/vanessa/sregistry_nginx
+    port: 80
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
