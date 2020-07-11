@@ -5,10 +5,10 @@ metadata:
   labels:
   {{- include "sregistry.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.config.nginx.type }}
+  type: {{ .Values.images.nginx.type }}
   selector:
   {{- include "sregistry.selectorLabels" . | nindent 4 }}
   ports:
-  - port: {{ .Values.config.nginx.port }}
+  - port: {{ .Values.images.nginx.port }}
     targetPort: nginx
     name: nginx

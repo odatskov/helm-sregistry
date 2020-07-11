@@ -5,28 +5,12 @@ metadata:
   labels:
   {{- include "sregistry.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.images.replicaCount }}
   selector:
     matchLabels:
     {{- include "sregistry.selectorLabels" . | nindent 6 }}
-  serviceName: {{ .Values.config.uwsgi.host | quote }}
-  volumeClaimTemplates:
-  - metadata:
-      name: static-vol
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: {{ .Values.storageClassName | quote }}
-      resources:
-        requests:
-          storage: 2Gi
-  - metadata:
-      name: images-vol
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: {{ .Values.storageClassName | quote }}
-      resources:
-        requests:
-          storage: 2Gi
+  serviceName: "uwsgi"
+  {{- include "sregistry.claimTemplate" .Values.persistence | nindent 2 }}
   template:
     metadata:
       labels:
@@ -35,56 +19,49 @@ spec:
       securityContext:
       {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
+      {{- include "sregistry.customVolumes" . | nindent 6 }}
       - name: shub-vol
         configMap:
           name: shub-config
+      - name: nginx-vol
+        configMap:
+          name: nginx-config
       containers:
       - name: uwsgi
         securityContext:
         {{- toYaml .Values.securityContext | nindent 12 }}
-        image: "{{ .Values.config.sregistry.image }}"
-        imagePullPolicy: {{ .Values.pullPolicy }}
-        volumeMounts:
-        {{- include "sregistry.mounts" . | nindent 8 }}
-        envFrom:
-        - configMapRef:
-            name: minio-config
+        image: {{ .Values.images.sregistry.image | quote }}
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        {{- include "sregistry.env" . | nindent 8 }}
+        {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         ports:
         - name: uwsgi
-          containerPort: {{ .Values.config.uwsgi.port }}
-          protocol: TCP
+          containerPort: {{ .Values.images.sregistry.port }}
       - name: worker
-        image: "{{ .Values.config.sregistry.image }}"
-        imagePullPolicy: {{ .Values.pullPolicy }}
-        volumeMounts:
-        {{- include "sregistry.mounts" . | nindent 8 }}
+        image: {{ .Values.images.sregistry.image | quote }}
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        {{- include "sregistry.env" . | nindent 8 }}
+        {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         command: [ "python", "/code/manage.py", "rqworker", "default" ]
-        envFrom:
-        - configMapRef:
-            name: minio-config
       - name: scheduler
-        image: "{{ .Values.config.sregistry.image }}"
-        imagePullPolicy: {{ .Values.pullPolicy }}
-        volumeMounts:
-        {{- include "sregistry.mounts" . | nindent 8 }}
+        image: {{ .Values.images.sregistry.image | quote }}
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        {{- include "sregistry.env" . | nindent 8 }}
+        {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         command: [ "python", "/code/manage.py", "rqscheduler" ]
-        envFrom:
-        - configMapRef:
-            name: minio-config
       - name: nginx
-        image: "{{ .Values.config.nginx.image }}"
-        imagePullPolicy: {{ .Values.pullPolicy }}
-        volumeMounts:
-        {{- include "sregistry.mounts" . | nindent 8 }}
+        image: {{ .Values.images.nginx.image | quote }}
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         - mountPath: /etc/nginx/conf.d/default.conf
           subPath: default.conf
-          name: shub-vol
+          name: nginx-vol
         - mountPath: /etc/nginx/uwsgi_params.par
           subPath: uwsgi_params.par
           name: shub-vol
         ports:
         - name: nginx
-          containerPort: {{ .Values.config.nginx.port }}
+          containerPort: {{ .Values.images.nginx.port }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

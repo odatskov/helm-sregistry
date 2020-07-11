@@ -1,4 +1,4 @@
-{{- if .Values.config.nginx.ingress -}}
+{{- if .Values.images.nginx.ingress -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1beta1
 {{- else -}}
@@ -12,6 +12,10 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
+  {{- if .Values.images.nginx.tlsSecretName }}
+  tls:
+  - secretName: {{ .Values.images.nginx.tlsSecretName | quote }}
+  {{- end }}
   rules:
   - host: {{ .Values.config.domainName | quote }}
     http:
