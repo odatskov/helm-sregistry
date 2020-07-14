@@ -165,7 +165,7 @@ images:
 ## Enable to persist data into storage, otherwise use local scratch space (emptyDir)
 ##
 persistence:
-  enabled: true
+  enabled: false
 
   # If defined, sets the storageClassName within the claimTemplate
   storageClassName: ""
