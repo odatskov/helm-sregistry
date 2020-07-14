@@ -18,7 +18,7 @@ postgresql:
   enabled: true
 
   ## [Required] Arguments needed to establish a db connection
-  hostname: "db"
+  hostname: "sregistry-postgresql"
   postgresqlUsername: "postgres"
   postgresqlPassword: "postgres"
   service:
@@ -36,13 +36,17 @@ redis:
   enabled: true
  
   ## [Required] Endpoint for a key-value store
-  hostname: "redis"
+  hostname: "sregistry-redis-master"
   redisPort: 6379
 
   ## [Optional] Subchart overrides. Refer to chart description for available options
   usePassword: false
-  persistence:
-    enabled: false
+  master:
+    persistence:
+      enabled: false
+  slave:
+    persistence:
+      enabled: false
 
 minio:
 
@@ -52,14 +56,15 @@ minio:
   enabled: true
   
   ## [Required] Service endpoint hostname and port
-  hostname: "minio"
+  hostname: "sregistry-minio"
   service:
     port: 9000
 
   ## [Required] Access credentials
-  minio:
-    accessKey: "newminio"
-    secretKey: "newminio123"
+  accessKey: 
+    password: "newminio"
+  secretKey: 
+    password: "newminio123"
 
   ssl: "False"
   bucket: "sregistry"
@@ -70,6 +75,7 @@ minio:
     create: false
   persistence:
     enabled: false
+  disableWebUI: true
   extraEnv:
   - name: MINIO_ACCESS_KEY_OLD
     value: minio
@@ -145,7 +151,7 @@ images:
   nginx:
 
     # Enable ingress for config.domainName host
-    ingress: false
+    ingress: true
 
     ## Service type specifies web server visibility.
     ## For example:  "ClusterIP" will only be visible within the cluster.

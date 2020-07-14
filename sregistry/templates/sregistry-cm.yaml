@@ -4,7 +4,7 @@ metadata:
   name: shub-config
   labels:
   {{- include "sregistry.labels" . | nindent 4 }}
-
+data:
   secrets.py: |-
     SECRET_KEY = {{ randAlphaNum 50 | quote }}
  
@@ -12,7 +12,7 @@ metadata:
     SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_KEY = {{ .key | quote }}
     SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_SECRET = {{ .secret | quote }}
     {{- range .extra }}
-    {{ .name }} = {{ .value }}
+    {{ .name }} = {{ .value | quote }}
     {{- end }}
     {{- end }}
 
@@ -31,10 +31,17 @@ metadata:
 
     # Which social auths do you want to use?
 
-    {{- $relplugins := .Values.auth.enabled }}
-    {{- range .Values.auth.plugins }}
-    {{- $relname  := . }} 
-    ENABLE_{{ upper $relname }}_AUTH={{- range $relplugins }}{{- if eq $relname .name }}True{{- else}}False{{- end }}{{- end }}
+    {{- range .Values.auth.enabled }}
+    ENABLE_{{ upper .name }}_AUTH=True
+    {{- end }}
+
+    {{- $disabled := .Values.auth.plugins }}
+    {{- range .Values.auth.enabled }}
+    {{ if has .name $disabled }}{{ $disabled = without $disabled .name }}{{- end }}
+    {{- end }}
+    
+    {{- range $disabled }}
+    ENABLE_{{ upper . }}_AUTH=False
     {{- end }}
 
     # NOTE you will need to set autehtication methods up.
