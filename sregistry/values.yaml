@@ -5,69 +5,212 @@
 nameOverride: ""
 fullnameOverride: ""
 
-storageClassName: ""
+##########################
+## Dependencies
+## Singularity registry requires external services: postgres, minio and redis
+##
 
-pullPolicy: IfNotPresent
-replicaCount: 1
+postgresql:
 
+  ## Create a local database service instance
+  ## Refence: https://github.com/bitnami/charts/tree/master/bitnami/postgresql
+  ##
+  enabled: true
+
+  ## [Required] Arguments needed to establish a db connection
+  hostname: "db"
+  postgresqlUsername: "postgres"
+  postgresqlPassword: "postgres"
+  service:
+    port: 5432
+
+  ## [Optional] Subchart overrides. Refer to chart description for available options.
+  persistence:
+    enabled: false
+
+redis:
+
+  ## Create a local key-value cache and store instance
+  ## Reference: https://github.com/bitnami/charts/tree/master/bitnami/redis
+  ##
+  enabled: true
+ 
+  ## [Required] Endpoint for a key-value store
+  hostname: "redis"
+  redisPort: 6379
+
+  ## [Optional] Subchart overrides. Refer to chart description for available options
+  usePassword: false
+  persistence:
+    enabled: false
+
+minio:
+
+  ## Create a local minio instance
+  ## Reference: https://github.com/bitnami/charts/tree/master/bitnami/minio
+  ##
+  enabled: true
+  
+  ## [Required] Service endpoint hostname and port
+  hostname: "minio"
+  service:
+    port: 9000
+
+  ## [Required] Access credentials
+  minio:
+    accessKey: "newminio"
+    secretKey: "newminio123"
+
+  ssl: "False"
+  bucket: "sregistry"
+  region: "us-east-1"
+
+  ## [Optional] Subchart overrides. Refer to chart description for available options
+  serviceAccount:
+    create: false
+  persistence:
+    enabled: false
+  extraEnv:
+  - name: MINIO_ACCESS_KEY_OLD
+    value: minio
+  - name: MINIO_SECRET_KEY_OLD
+    value: minio123
+
+
+###########################
+## Registry Configuration
+##
 config:
 
-  domainName:   "localhost"
+  domainName:   "127.0.0.1"
   registryName: "Tacosaurus Computing Center"
   registryUri:  "taco"
- 
-  uwsgi:
-    host: "uwsgi"
+
+  instituteSite: "https://srcc.stanford.edu"
+  contactEmail:  "vsochat@stanford.edu"
+
+  # Google analytics option. Disabled by default.
+  analytics: "None"
+
+  # List administrator accounts/users
+  admins:
+  - user:  "vsochat"
+    email: "vsochat@gmail.com"
+
+  # Allow users to create public collections
+  userCreate: "True"
+
+  # Limit users to N collections (None for unlimited)
+  userCollections: 2
+
+  # Define visibility of images. Default "False" sets to public
+  private: "False"
+
+  # Allows to Set images to private by default
+  privateDefault: "False"
+
+  # Number of collections to show per page
+  collectionsPerPage: 250
+
+  # Maximum number of downloads per container and collection, per week
+  weeklyContainers: 100
+  weeklyCollections: 100
+
+  # Rate limits for each view and block policy
+  viewRateLimit: "50/1d"
+  viewRateBlock: "True"
+
+  # Disable all building, including pushing of containers and recipes
+  disableBuild: "False"
+
+  # Track all requests to pull containers. Set to "False" for minimal logging
+  logSaveResponses: "True"
+
+
+##########################
+## SRegistry Images 
+##
+images:
+
+  # Container replicas and their pullPolicy to maintain
+  replicaCount: 1
+  pullPolicy: IfNotPresent
+
+  # SRegistry image and port exposed by the uwsgi port
+  sregistry:
+    image: "quay.io/vanessa/sregistry"
     port: 3031
 
-  database:
-    enabled: true
-    resources: {}
-
-    name: "postgres"
-    user: "postgres"
-    host: "db"
-    port: "5432"
-
-  redis:
-    enabled: true
-    name: "redis"
-    resources: {}
-
-    image: "redis:latest"
-    port:  6379
-
-  minio:
-    enabled: true
-    resources: {}
-    image: minio/minio
-    
-    server: "minio"
-    port: 9000
-    external: "127.0.0.1"
-    bucket: "sregistry"
-    region: "us-east-1"
-
-  auth:
-    google:    "False"
-    twitter:   "False"
-    github:    "True"
-    gitlab:    "False"
-    bitbucket: "False"
-
-  sregistry:
-    image: "quay.io/vanessa/sregistry:1.1.26"
-    port: 8080
-
+  # Web server for a Singularity Hub instance
   nginx:
-    ingress: true
+
+    # Enable ingress for config.domainName host
+    ingress: false
+
+    ## Service type specifies web server visibility.
+    ## For example:  "ClusterIP" will only be visible within the cluster.
+    ## "LoadBalancer" type gives IP management to configured LBs.
+    ##
     type: ClusterIP
 
-    image: quay.io/vanessa/sregistry_nginx
+    # Specify secret name to enable TLS on Ingress (must be enabled)
+    tlsSecretName: ""
+
+    # Nginx image and port exposed by the service
+    image: "quay.io/vanessa/sregistry_nginx"
     port: 80
 
+##########################
+## Persistence
+## Enable to persist data into storage, otherwise use local scratch space (emptyDir)
+##
+persistence:
+  enabled: true
+
+  # If defined, sets the storageClassName within the claimTemplate
+  storageClassName: ""
+  accessMode: ReadWriteOnce
+  size: 1G
+
+##########################
+## Authentication Plugins
+## Setup docs: https://singularityhub.github.io/sregistry/docs/install/settings
+##
+auth:
+
+  # List of plugins available in the container
+  plugins: [ "google", "twitter", "github", "gitlab", "bitbucket" ]
+  
+  ## For custom plugins define list of ConfigMaps to mount into sregistry
+  ## For writing a plugin refer to docs: https://singularityhub.github.io/sregistry/docs/plugins/
+  ## Example: 
+  ## - name: "custom-plugin"
+  ##   configMap: "plugin-cm"
+  ##
+  customPlugins: []
+
+  ## For each enabled plugin specify the name and credentials.
+  ## Extra definitions can be added as needed. Refer to the docs for reference.
+  ## Example:
+  ## - name:   "google"
+  ##   key:    "xxxxxx"
+  ##   secret: "xxxxxx"
+  ##   extra:
+  ##   - name:  "GOOGLE_CLIENT_FILE"
+  ##     value: "'/code/.grilledcheese.json'"
+  ##   - name:  "SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS"
+  ##     value: "{ 'access_type' : 'offline', 'approval_prompt' : 'auto' }"
+  ##
+  enabled:
+  - name: "github"
+    key: ""
+    secret: ""
+    extra: []
+
+## Pod Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
 podSecurityContext: {}
-  # fsGroup: 2000
 
 securityContext: {}
   # capabilities:

@@ -4,9 +4,18 @@ metadata:
   name: shub-config
   labels:
   {{- include "sregistry.labels" . | nindent 4 }}
-data: 
+
   secrets.py: |-
     SECRET_KEY = {{ randAlphaNum 50 | quote }}
+ 
+    {{- range .Values.auth.enabled }}
+    SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_KEY = {{ .key | quote }}
+    SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_SECRET = {{ .secret | quote }}
+    {{- range .extra }}
+    {{ .name }} = {{ .value }}
+    {{- end }}
+    {{- end }}
+
   config.py: |-
     """
     
@@ -21,11 +30,12 @@ data:
     # AUTHENTICATION
 
     # Which social auths do you want to use?
-    ENABLE_GOOGLE_AUTH = {{ .Values.config.auth.google  }}
-    ENABLE_TWITTER_AUTH = {{ .Values.config.auth.twitter }}
-    ENABLE_GITHUB_AUTH = {{ .Values.config.auth.github  }}
-    ENABLE_GITLAB_AUTH = {{ .Values.config.auth.gitlab  }}
-    ENABLE_BITBUCKET_AUTH = {{ .Values.config.auth.bitbucket }}
+
+    {{- $relplugins := .Values.auth.enabled }}
+    {{- range .Values.auth.plugins }}
+    {{- $relname  := . }} 
+    ENABLE_{{ upper $relname }}_AUTH={{- range $relplugins }}{{- if eq $relname .name }}True{{- else}}False{{- end }}{{- end }}
+    {{- end }}
 
     # NOTE you will need to set autehtication methods up.
     # Configuration goes into secrets.py
@@ -39,18 +49,18 @@ data:
     ## IMPORTANT: if/when you switch to https, you need to change "DOMAIN_NAME"
     # to have https, otherwise some functionality will not work (e.g., GitHub webhooks)
 
-    DOMAIN_NAME = "http://{{ .Values.config.domainName }}"
-    DOMAIN_NAME_HTTP = "http://{{ .Values.config.domainName }}"
-    DOMAIN_NAKED = DOMAIN_NAME_HTTP.replace("http://", "")
+    DOMAIN_NAME = "{{ include "http.prefix" . }}://{{ .Values.config.domainName }}"
+    DOMAIN_NAME_HTTP = "{{ include "http.prefix" . }}://{{ .Values.config.domainName }}"
+    DOMAIN_NAKED = DOMAIN_NAME_HTTP.replace("{{ include "http.prefix" . }}://", "")
 
-    ADMINS = (("vsochat", "vsochat@gmail.com"),)
+    ADMINS = ( {{- range .Values.config.admins }}({{ .user | quote }}, {{ .email | quote }}),{{- end }})
     MANAGERS = ADMINS
 
-    HELP_CONTACT_EMAIL = "vsochat@stanford.edu"
-    HELP_INSTITUTION_SITE = "https://srcc.stanford.edu"
+    HELP_CONTACT_EMAIL = {{ .Values.config.contactEmail | quote }}
+    HELP_INSTITUTION_SITE = {{ .Values.config.instituteSite | quote }}
     REGISTRY_NAME = {{ .Values.config.registryName | quote }}
     REGISTRY_URI =  {{ .Values.config.registryUri  | quote }}
-    GOOGLE_ANALYTICS = None  # "UA-XXXXXXXXX"
+    GOOGLE_ANALYTICS = {{ .Values.config.analytics | quote }} # "UA-XXXXXXXXX"
 
     # Permissions and Views
 
@@ -59,26 +69,26 @@ data:
     DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
     # Allow users to create public collections
-    USER_COLLECTIONS = True
+    USER_COLLECTIONS = {{ .Values.config.userCreate }}
 
     # Limit users to N collections (None is unlimited)
-    USER_COLLECTION_LIMIT = 2
+    USER_COLLECTION_LIMIT = {{ .Values.config.userCollections }}
 
     # Should registries by default be private, with no option for public?
-    PRIVATE_ONLY = False
+    PRIVATE_ONLY = {{ .Values.config.private }}
 
     # Should the default for a new registry be private or public?
-    DEFAULT_PRIVATE = False
+    DEFAULT_PRIVATE = {{ .Values.config.privateDefault }}
 
     # The number of collections to show on the /<domain>/collections page
-    COLLECTIONS_VIEW_PAGE_COUNT = 250
+    COLLECTIONS_VIEW_PAGE_COUNT = {{ .Values.config.collectionsPerPage }}
 
     # The maximum number of downloads allowed per container/collection, per week
-    CONTAINER_WEEKLY_GET_LIMIT = 100
-    COLLECTION_WEEKLY_GET_LIMIT = 100
+    CONTAINER_WEEKLY_GET_LIMIT = {{ .Values.config.weeklyContainers }}
+    COLLECTION_WEEKLY_GET_LIMIT = {{ .Values.config.weeklyCollections }}
 
     # Disable all pushes of containers, recipes, etc. Also for Google Cloud Build
-    DISABLE_BUILDING = False
+    DISABLE_BUILDING = {{ .Values.config.disableBuild }}
 
     # Plugins ######################################################################
     # See dummy_secrets.py for more details.
@@ -105,36 +115,37 @@ data:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": {{ .Values.config.database.name | quote }},
-            "USER": {{ .Values.config.database.user | quote }},
-            "HOST": {{ .Values.config.database.host | quote }},
-            "PORT": {{ .Values.config.database.port | quote }},
+            "NAME": "postgres",
+            "USER": {{ .Values.postgresql.postgresqlUsername | quote }},
+            "PASSWORD": {{ .Values.postgresql.postgresqlPassword | quote }},
+            "HOST": {{ .Values.postgresql.hostname | quote }},
+            "PORT": {{ .Values.postgresql.service.port | quote }},
         }
     }
 
     # STORAGE
 
-    MINIO_SERVER = "{{ .Values.config.minio.server }}:{{ .Values.config.minio.port }}"  # Internal to sregistry
+    MINIO_SERVER = "{{ .Values.minio.hostname }}:{{ .Values.minio.service.port }}"  # Internal to sregistry
     MINIO_EXTERNAL_SERVER = (
-        "{{ .Values.config.minio.external }}:{{ .Values.config.minio.port }}"  # minio server for Singularity to interact with
+        "{{ .Values.minio.hostname }}:{{ .Values.minio.service.port }}"  # minio server for Singularity to interact with
     )
-    MINIO_BUCKET = {{ .Values.config.minio.bucket | quote }}
-    MINIO_SSL = False  # use SSL for minio
+    MINIO_BUCKET = {{ .Values.minio.bucket | quote }}
+    MINIO_SSL = {{ .Values.minio.ssl }}  # use SSL for minio
     MINIO_SIGNED_URL_EXPIRE_MINUTES = 5
-    MINIO_REGION = {{ .Values.config.minio.region | quote }}
+    MINIO_REGION = {{ .Values.minio.region | quote }}
     MINIO_MULTIPART_UPLOAD = True
 
     # Logging
 
     # Do you want to save complete response metadata per each pull?
     # If you disable, we still keep track of collection pull counts, but not specific versions
-    LOGGING_SAVE_RESPONSES = True
+    LOGGING_SAVE_RESPONSES = {{ .Values.config.logSaveResponses }}
 
     # Rate Limits
 
-    VIEW_RATE_LIMIT = "50/1d"  # The rate limit for each view, django-ratelimit, "50 per day per ipaddress)
+    VIEW_RATE_LIMIT = {{ .Values.config.viewRateLimit | quote }}  # The rate limit for each view, django-ratelimit, "50 per day per ipaddress)
     VIEW_RATE_LIMIT_BLOCK = (
-        True  # Given that someone goes over, are they blocked for the period?
+        {{ .Values.config.viewRateBlock }}  # Given that someone goes over, are they blocked for the period?
     )
 
     # Plugins
@@ -150,6 +161,9 @@ data:
     # - pgp: deploy a key server alongside your registry
 
     PLUGINS_ENABLED = [
+        {{ range .Values.auth.customPlugins }}
+             {{ .name | squote }}
+        {{ end }}
         #    'pgp'
         #    'ldap_auth',
         #    'google_build'
@@ -158,67 +172,6 @@ data:
         #    'saml_auth'
     ]
 
-  default.conf: |-
-    server {
-      listen                *:80;
-      server_name           localhost;
-
-      client_max_body_size 10024M;
-      client_body_buffer_size 10024M;
-      client_body_timeout 120;
-
-      add_header X-Clacks-Overhead "GNU Terry Pratchett";
-      add_header X-Clacks-Overhead "GNU Terry Pratchet";
-      add_header Access-Control-Allow-Origin *;
-      add_header 'Access-Control-Allow-Credentials' 'true';
-      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-      add_header 'Access-Control-Allow-Headers' 'Authorization,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
-
-      location /images {
-        alias /var/www/images;
-      }
-
-      location ~* \.(php|aspx|myadmin|asp)$ {
-        deny all;
-      }
-
-      location / {
-        include /etc/nginx/uwsgi_params.par;
-        uwsgi_pass {{ .Values.config.uwsgi.host }}:{{ .Values.config.uwsgi.port }};
-        uwsgi_max_temp_file_size 10024m;
-      }
-
-      location /static {
-        alias /var/www/static;
-      }
-
-      location /upload {
-
-        # Pass altered request body to this location
-        upload_pass   /api/uploads/complete/;
-        
-        # Store files to this directory
-        # The directory is hashed, subdirectories 0 1 2 3 4 5 6 7 8 9 should exist
-        upload_store /var/www/images/_upload 1;        
-        upload_store_access user:rw group:rw all:rw;
-        
-        # Set specified fields in request body
-        upload_set_form_field $upload_field_name.name "$upload_file_name";
-        upload_set_form_field $upload_field_name.content_type "$upload_content_type";
-        upload_set_form_field $upload_field_name.path "$upload_tmp_path";
-        
-        # Inform backend about hash and size of a file
-        upload_aggregate_form_field "$upload_field_name.md5" "$upload_file_md5";
-        upload_aggregate_form_field "$upload_field_name.size" "$upload_file_size";
-        
-        upload_pass_form_field "^submit$|^description$";
-        upload_pass_form_field "^SREGISTRY_EVENT$";
-        upload_pass_form_field "^collection$";
-        upload_pass_form_field "^name$";
-        upload_pass_form_field "^tag$";
-        upload_cleanup 400-599;
-      }
-    }
   uwsgi_params.par: |-
     uwsgi_param  QUERY_STRING       $query_string;
     uwsgi_param  REQUEST_METHOD     $request_method;

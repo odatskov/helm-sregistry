@@ -1,9 +1,40 @@
 apiVersion: v2
+
 description: A Helm chart for Singularity Registry
+
 name: sregistry
 type: application
+
 version: 0.1.0
 appVersion: 1.1.26
+
+home: https://singularityhub.github.io/
+
 sources:
 - https://github.com/singularityhub/sregistry
 
+dependencies:
+
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 8.10.14
+  condition: postgresql.enabled
+  tags:
+  - postgres
+  - database
+
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.7.11
+  condition: redis.enabled
+  tags:
+  - redis
+  - cache
+ 
+- name: minio
+  repository: https://charts.bitnami.com/bitnami
+  version: 3.4.15
+  condition: minio.enabled
+  tags:
+  - minio
+  - storage

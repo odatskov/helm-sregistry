@@ -52,11 +52,83 @@ app.kubernetes.io/name: {{ include "sregistry.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
+{{/*
+Switch between http and https based on TLS availability
+*/}}
+{{- define "http.prefix" -}}
+{{- if .Values.images.nginx.tlsSecretName -}}https{{- else -}}http{{- end -}}
+{{- end -}}
+
+{{/*
+OAUTH2 prefix added for select plugins
+*/}}
+{{- define "oauth.prefix" -}}
+{{ if or  (eq . "google") (eq . "bitbucket") }}_OAUTH2{{ end }}
+{{- end -}}
+
+{{/*
+Environment to propagate within sregistry containers
+*/}}
+{{- define "sregistry.env" -}}
+env:
+- name: MINIO_ACCESS_KEY
+  value: {{ .Values.minio.minio.accessKey | quote }}
+- name: MINIO_SECRET_KEY
+  value: {{ .Values.minio.minio.secretKey | quote }}
+{{ toYaml .Values.minio.extraEnv }}
+{{- end -}}
+
+{{/*
+Volume claim templates when persistence is enabled
+*/}}
+{{- define "sregistry.claimTemplate" -}}
+{{- if .enabled -}}
+volumeClaimTemplates:
+- metadata:
+    name: static-vol
+  spec:
+    accessModes: [ {{ .accessMode | quote }} ]
+    {{- if .storageClassName }}
+    storageClassName: {{ .storageClassName | quote }}
+    {{- end }}
+    resources:
+      requests:
+        storage: {{ .size }}
+- metadata:
+    name: images-vol
+  spec:
+    accessModes: [ {{ .accessMode | quote }} ]
+    {{- if .storageClassName }}
+    storageClassName: {{ .storageClassName | quote }}
+    {{- end }}
+    resources:
+      requests:
+        storage: {{ .size }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Custom plugin volumes to be mounted from configMaps
+*/}}
+{{- define "sregistry.customVolumes" -}}
+{{- if not .Values.persistence.enabled -}}
+- name: static-vol
+  emptyDir: {}
+- name: images-vol
+  emptyDir: {}
+{{- end -}}
+{{- range .Values.auth.customPlugins -}}
+- name: {{ .name }}-vol
+  configMap:
+    name: {{ .configMap }}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Shared volume mounts
 */}}
 {{- define "sregistry.mounts" -}}
+volumeMounts:
 - mountPath: /var/www/static
   name: static-vol
 - mountPath: /var/www/images
@@ -67,4 +139,8 @@ Shared volume mounts
 - mountPath: /code/shub/settings/config.py
   subPath: config.py
   name: shub-vol
+{{- range . }}
+- mountPath: /code/shub/plugins/{{ .name }}
+  name: {{ .name }}-vol
+{{- end -}}
 {{- end -}}
