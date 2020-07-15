@@ -60,19 +60,29 @@ The table below lists all configurable parameters for the sregistry chart along 
 | `config.viewRateBlock`     | View rate block policy | `"True"` |
 | `config.disableBuild`      | Disable all building, including pushing of containers and recipes | `"False"` |
 | `config.logSaveResponses`  | Track all requests to pull containers. Set to "False" for minimal logging | `"True"` |
-| `images.replicaCount`      | Replicas to maintain | `1` |
 | `images.pullPolicy`        | Pull policy for sregistry container images | `IfNotPresent` |
 | `images.sregistry.image`   | Principle Singularity registry service container | `quay.io/vanessa/sregistry` |
 | `images.sregistry.port`    | uwsgi service port | `3031` |
 | `images.nginx.ingress`     | Enable ingress to expose the nginx web server | `false` |
 | `images.nginx.type`        | Nginx service type | `ClusterIP` |
+| `images.nginx.size`        | Set Nginx proxy-body-size limits | `5g` |
 | `images.nginx.tlsSecretName` | Enable Ingress TLS with certificate secret | `""` |
 | `images.nginx.image`       | Nginx web server image | `quay.io/vanessa/sregistry_nginx` |
 | `images.nginx.port`        | nginx service port | `80` |
+| `statefulset.updateStrategy` | Update strategy: RollingUpdate or OnDelete | `RollingUpdate` |
+| `statefulset.podManagementPolicy` | Ordering guarantees | `Parallel` |
+| `statefulset.replicaCount` | Number of replicas | `1` |
+| `livenessProbe`            | Liveness probes | See `values.yaml` for details |
+| `readinessProbe`           | Readiness probes | See `values.yaml` for details |
 | `persistence.enabled`      | Enable dynamic volume provisioning | `false` |
-| `persistence.storageClassName` | If needed, storage class name to use | "" |
 | `persistence.accessMode`   | Access mode | `ReadWriteOnce` |
 | `persistence.size`         | Volume sizes to be created | `1Gi` |
 | `auth.plugins`             | List of available authentication plugins | `[ "google" , "twitter" , "github" , "gitlab" , "bitbucket" ]` |
 | `auth.customPlugins`       | List of configMaps to mount as additional plugins | `[]` |
 | `auth.enabled`             | Plugins to enable with credentials and extra arguments | See `values.yaml` for defaults |
+| `podSecurityContext`       | Pod security context | {} |
+| `securityContext`          | Security context | {} |
+| `nodeSelector`             | Node labels for assignment | {} |
+| `tolerations`              | Tolerations for pod assignment | {} |
+| `resources`                | Registry containers resource requests and limits | See `value.yaml` for details |
+| `affinity`                 | Affinity for pod assignment | {} |

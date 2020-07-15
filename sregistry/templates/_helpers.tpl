@@ -90,8 +90,12 @@ volumeClaimTemplates:
     name: static-vol
   spec:
     accessModes: [ {{ .accessMode | quote }} ]
-    {{- if .storageClassName }}
-    storageClassName: {{ .storageClassName | quote }}
+    {{- if .storageClass }}
+    {{- if (eq "-" .storageClass) }}
+    storageClassName: ""
+    {{- else }}
+    storageClassName: {{ .storageClass | quote }}
+    {{- end }}
     {{- end }}
     resources:
       requests:
@@ -100,8 +104,12 @@ volumeClaimTemplates:
     name: images-vol
   spec:
     accessModes: [ {{ .accessMode | quote }} ]
-    {{- if .storageClassName }}
-    storageClassName: {{ .storageClassName | quote }}
+    {{- if .storageClass }}
+    {{- if (eq "-" .storageClass) }}
+    storageClassName: ""
+    {{- else }}
+    storageClassName: {{ .storageClass | quote }}
+    {{- end }}
     {{- end }}
     resources:
       requests:
@@ -145,4 +153,15 @@ volumeMounts:
 - mountPath: /code/shub/plugins/{{ .name }}
   name: {{ .name }}-vol
 {{- end -}}
+{{- end -}}
+
+{{/*
+Liveness container probe parameters
+*/}}
+{{- define "sregistry.probes" -}}
+initialDelaySeconds: {{ .initialDelaySeconds }}
+periodSeconds: {{ .periodSeconds }}
+timeoutSeconds: {{ .timeoutSeconds }}
+successThreshold: {{ .successThreshold }}
+failureThreshold: {{ .failureThreshold }}
 {{- end -}}
