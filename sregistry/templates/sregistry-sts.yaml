@@ -5,11 +5,17 @@ metadata:
   labels:
   {{- include "sregistry.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.images.replicaCount }}
+  replicas: {{ .Values.statefulset.replicaCount }}
   selector:
     matchLabels:
     {{- include "sregistry.selectorLabels" . | nindent 6 }}
   serviceName: "uwsgi"
+  podManagementPolicy: {{ .Values.statefulset.podManagementPolicy }}
+  updateStrategy:
+    type: {{ .Values.statefulset.updateStrategy }}
+    {{- if (eq "Recreate" .Values.statefulset.updateStrategy) }}
+    rollingUpdate: null
+    {{- end }}
   {{- include "sregistry.claimTemplate" .Values.persistence | nindent 2 }}
   template:
     metadata:
@@ -62,6 +68,19 @@ spec:
         ports:
         - name: nginx
           containerPort: {{ .Values.images.nginx.port }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+        {{- include "sregistry.probes" .Values.livenessProbe | nindent 10 }}
+          httpGet:
+            path: /
+            port: nginx
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+        {{- include "sregistry.probes" .Values.readinessProbe | nindent 10 }}
+          tcpSocket:
+            port: nginx
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
