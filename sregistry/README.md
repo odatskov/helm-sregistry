@@ -65,7 +65,9 @@ The table below lists all configurable parameters for the sregistry chart along 
 | `images.sregistry.port`    | uwsgi service port | `3031` |
 | `images.nginx.ingress`     | Enable ingress to expose the nginx web server | `false` |
 | `images.nginx.type`        | Nginx service type | `ClusterIP` |
-| `images.nginx.size`        | Set Nginx proxy-body-size limits | `5g` |
+| `images.nginx.maxBodySize`        | Set NGinx client_max_body_size which is propagated to Ingress | `10024M` |
+| `images.nginx.bodyBufferSize` | Set NGinx client_body_buffer_size which is propagated to Ingress | `10024M` |
+| `images.nginx.bodyTimeout` | Set NGinx client timeout | `120` |
 | `images.nginx.tlsSecretName` | Enable Ingress TLS with certificate secret | `""` |
 | `images.nginx.image`       | Nginx web server image | `quay.io/vanessa/sregistry_nginx` |
 | `images.nginx.port`        | nginx service port | `80` |

@@ -161,7 +161,7 @@ images:
     ## For ingress, set the nginx proxy-body-size limit
     maxBodySize: "10024M"
     bodyBufferSize: "10024M"
-    clientBodyTimeout: 120
+    bodyTimeout: 120
 
     # Specify secret name to enable TLS on Ingress (must be enabled)
     tlsSecretName: ""
