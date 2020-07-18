@@ -159,7 +159,9 @@ images:
     type: ClusterIP
 
     ## For ingress, set the nginx proxy-body-size limit
-    size: 5g
+    maxBodySize: "10024M"
+    bodyBufferSize: "10024M"
+    clientBodyTimeout: 120
 
     # Specify secret name to enable TLS on Ingress (must be enabled)
     tlsSecretName: ""
