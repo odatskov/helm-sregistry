@@ -10,9 +10,9 @@ data:
       listen                *:80;
       server_name           localhost;
 
-      client_max_body_size 10024M;
-      client_body_buffer_size 10024M;
-      client_body_timeout 120;
+      client_max_body_size {{ .Values.images.nginx.maxBodySize }};
+      client_body_buffer_size {{ .Values.images.nginx.bodyBufferSize }};
+      client_body_timeout {{ .Values.images.nginx.clientBodyTimeout }};
 
       add_header X-Clacks-Overhead "GNU Terry Pratchett";
       add_header X-Clacks-Overhead "GNU Terry Pratchet";
