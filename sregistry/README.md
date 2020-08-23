@@ -62,6 +62,7 @@ The table below lists all configurable parameters for the sregistry chart along 
 | `config.logSaveResponses`  | Track all requests to pull containers. Set to "False" for minimal logging | `"True"` |
 | `images.pullPolicy`        | Pull policy for sregistry container images | `IfNotPresent` |
 | `images.sregistry.image`   | Principle Singularity registry service container | `quay.io/vanessa/sregistry` |
+| `images.sregistry.tag`     | Image tag override. Default: .Chart.AppVersion | "" |
 | `images.sregistry.port`    | uwsgi service port | `3031` |
 | `images.nginx.ingress`     | Enable ingress to expose the nginx web server | `false` |
 | `images.nginx.type`        | Nginx service type | `ClusterIP` |
@@ -70,6 +71,7 @@ The table below lists all configurable parameters for the sregistry chart along 
 | `images.nginx.bodyTimeout` | Set NGinx client timeout | `120` |
 | `images.nginx.tlsSecretName` | Enable Ingress TLS with certificate secret | `""` |
 | `images.nginx.image`       | Nginx web server image | `quay.io/vanessa/sregistry_nginx` |
+| `images.nginx.tag`         | Image tag override. Default: .Chart.AppVersion | "" |
 | `images.nginx.port`        | nginx service port | `80` |
 | `statefulset.updateStrategy` | Update strategy: RollingUpdate or OnDelete | `RollingUpdate` |
 | `statefulset.podManagementPolicy` | Ordering guarantees | `Parallel` |

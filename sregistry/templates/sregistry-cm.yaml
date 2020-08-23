@@ -109,9 +109,6 @@ data:
     # A global setting to disable all webhooks / interaction with Github
     DISABLE_GITHUB = False
 
-    # A global setting to disable all building
-    DISABLE_BUILDING = False
-
     # prevent responses from being received from Google Cloud Build
     DISABLE_BUILD_RECEIVE = False
 
@@ -141,6 +138,8 @@ data:
     MINIO_SIGNED_URL_EXPIRE_MINUTES = 5
     MINIO_REGION = {{ .Values.minio.region | quote }}
     MINIO_MULTIPART_UPLOAD = True
+
+    DISABLE_MINIO_CLEANUP = False
 
     # Logging
 
