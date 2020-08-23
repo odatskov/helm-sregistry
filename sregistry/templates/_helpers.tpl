@@ -99,7 +99,7 @@ volumeClaimTemplates:
     {{- end }}
     resources:
       requests:
-        storage: {{ .size }}
+        storage: 5Gi
 - metadata:
     name: images-vol
   spec:
