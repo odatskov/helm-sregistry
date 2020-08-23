@@ -12,7 +12,7 @@ data:
 
       client_max_body_size {{ .Values.images.nginx.maxBodySize }};
       client_body_buffer_size {{ .Values.images.nginx.bodyBufferSize }};
-      client_body_timeout {{ .Values.images.nginx.bodyTimeout }};
+      client_body_timeout {{ .Values.images.nginx.clientBodyTimeout }};
 
       add_header X-Clacks-Overhead "GNU Terry Pratchett";
       add_header X-Clacks-Overhead "GNU Terry Pratchet";
