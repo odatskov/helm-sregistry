@@ -36,7 +36,7 @@ spec:
       - name: uwsgi
         securityContext:
         {{- toYaml .Values.securityContext | nindent 12 }}
-        image: {{ .Values.images.sregistry.image | quote }}
+        image: "{{ .Values.images.sregistry.image }}:{{ .Values.images.sregistry.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.images.pullPolicy }}
         {{- include "sregistry.env" . | nindent 8 }}
         {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
@@ -44,19 +44,19 @@ spec:
         - name: uwsgi
           containerPort: {{ .Values.images.sregistry.port }}
       - name: worker
-        image: {{ .Values.images.sregistry.image | quote }}
+        image: "{{ .Values.images.sregistry.image }}:{{ .Values.images.sregistry.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.images.pullPolicy }}
         {{- include "sregistry.env" . | nindent 8 }}
         {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         command: [ "python", "/code/manage.py", "rqworker", "default" ]
       - name: scheduler
-        image: {{ .Values.images.sregistry.image | quote }}
+        image: "{{ .Values.images.sregistry.image }}:{{ .Values.images.sregistry.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.images.pullPolicy }}
         {{- include "sregistry.env" . | nindent 8 }}
         {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         command: [ "python", "/code/manage.py", "rqscheduler" ]
       - name: nginx
-        image: {{ .Values.images.nginx.image | quote }}
+        image: "{{ .Values.images.nginx.image }}:{{ .Values.images.nginx.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.images.pullPolicy }}
         {{- include "sregistry.mounts" .Values.auth.customPlugins | nindent 8 }}
         - mountPath: /etc/nginx/conf.d/default.conf

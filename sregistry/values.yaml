@@ -144,6 +144,7 @@ images:
   # SRegistry image and port exposed by the uwsgi port
   sregistry:
     image: "quay.io/vanessa/sregistry"
+    tag: ""
     port: 3031
 
   # Web server for a Singularity Hub instance
@@ -168,6 +169,7 @@ images:
 
     # Nginx image and port exposed by the service
     image: "quay.io/vanessa/sregistry_nginx"
+    tag: ""
     port: 80
 
 ##########################
