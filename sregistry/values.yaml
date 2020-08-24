@@ -159,6 +159,9 @@ images:
     ##
     type: ClusterIP
 
+    ## Annotations for the nginx Service. May be needed for LoadBalancer type.
+    annotations: ""
+
     ## For ingress, set the nginx proxy-body-size limit
     maxBodySize: "10024M"
     bodyBufferSize: "10024M"

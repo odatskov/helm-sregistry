@@ -66,6 +66,7 @@ The table below lists all configurable parameters for the sregistry chart along 
 | `images.sregistry.port`    | uwsgi service port | `3031` |
 | `images.nginx.ingress`     | Enable ingress to expose the nginx web server | `false` |
 | `images.nginx.type`        | Nginx service type | `ClusterIP` |
+| `images.nginx.annotations` | Annotations the nginx service as needed for LoadBalancer type | "" |
 | `images.nginx.maxBodySize`        | Set NGinx client_max_body_size which is propagated to Ingress | `10024M` |
 | `images.nginx.bodyBufferSize` | Set NGinx client_body_buffer_size which is propagated to Ingress | `10024M` |
 | `images.nginx.bodyTimeout` | Set NGinx client timeout | `120` |

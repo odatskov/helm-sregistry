@@ -4,6 +4,10 @@ metadata:
   name: nginx
   labels:
   {{- include "sregistry.labels" . | nindent 4 }}
+  {{- if .Values.images.nginx.annotations }}
+  annotations:
+  {{- toYaml .Values.images.nginx.annotations | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.images.nginx.type }}
   selector:
