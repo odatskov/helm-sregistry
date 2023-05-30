@@ -20,6 +20,7 @@ postgresql:
   ## [Required] Arguments needed to establish a db connection
   hostname: "sregistry-postgresql"
   auth:
+    postgresPassword: "postgres"
     username: "sregistry"
     password: "sregistry123"
   service:
