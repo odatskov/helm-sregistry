@@ -152,6 +152,7 @@ images:
 
     # Enable ingress for config.domainName host
     ingress: true
+    ingressClass: "nginx"
 
     ## Service type specifies web server visibility.
     ## For example:  "ClusterIP" will only be visible within the cluster.
