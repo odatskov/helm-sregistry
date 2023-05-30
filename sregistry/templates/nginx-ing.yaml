@@ -1,6 +1,6 @@
 {{- if .Values.images.nginx.ingress -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 {{- else -}}
 apiVersion: extensions/v1beta1
 {{- end }}
@@ -17,6 +17,8 @@ spec:
   {{- if .Values.images.nginx.tlsSecretName }}
   tls:
   - secretName: {{ .Values.images.nginx.tlsSecretName | quote }}
+    hosts:
+    - {{ .Values.config.domainName | quote }}
   {{- end }}
   rules:
   - host: {{ .Values.config.domainName | quote }}
@@ -24,6 +26,9 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: nginx
-          servicePort: nginx
+          service:
+            name: nginx
+            port:
+              number: {{ .Values.images.nginx.port }}
+        pathType: Prefix
 {{- end }}

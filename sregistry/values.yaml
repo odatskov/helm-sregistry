@@ -19,8 +19,9 @@ postgresql:
 
   ## [Required] Arguments needed to establish a db connection
   hostname: "sregistry-postgresql"
-  postgresqlUsername: "postgres"
-  postgresqlPassword: "postgres"
+  auth:
+    username: "sregistry"
+    password: "sregistry123"
   service:
     port: 5432
 
@@ -34,7 +35,7 @@ redis:
   ## Reference: https://github.com/bitnami/charts/tree/master/bitnami/redis
   ##
   enabled: true
- 
+
   ## [Required] Endpoint for a key-value store
   hostname: "sregistry-redis-master"
   redisPort: 6379
@@ -44,7 +45,7 @@ redis:
   master:
     persistence:
       enabled: false
-  slave:
+  replica:
     persistence:
       enabled: false
 
@@ -54,17 +55,16 @@ minio:
   ## Reference: https://github.com/bitnami/charts/tree/master/bitnami/minio
   ##
   enabled: true
-  
+
   ## [Required] Service endpoint hostname and port
   hostname: "sregistry-minio"
   service:
     port: 9000
 
   ## [Required] Access credentials
-  accessKey: 
-    password: "newminio"
-  secretKey: 
-    password: "newminio123"
+  auth:
+    rootPassword: "newminio123"
+    rootUser: "newminio"
 
   ssl: "False"
   bucket: "sregistry"
@@ -134,7 +134,7 @@ config:
 
 
 ##########################
-## SRegistry Images 
+## SRegistry Images
 ##
 images:
 
@@ -189,7 +189,7 @@ statefulset:
   ## There are two valid pod management policies: OrderedReady and Parallel
   ## Ref: https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#pod-management-policy
   podManagementPolicy: Parallel
- 
+
   # Number of replicas
   replicaCount: 1
 
@@ -229,10 +229,10 @@ persistence:
   ##   choosing the default provisioner. (gp2 on AWS, standard on GKE, AWS & OpenStack)
   ##
   # storageClass: "-"
-  
+
   # Persistent volume access mode
   accessMode: ReadWriteOnce
-  
+
   # Persistent volume size
   size: 1Gi
 
@@ -244,10 +244,10 @@ auth:
 
   # List of plugins available in the container
   plugins: [ "google", "twitter", "github", "gitlab", "bitbucket" ]
-  
+
   ## For custom plugins define list of ConfigMaps to mount into sregistry
   ## For writing a plugin refer to docs: https://singularityhub.github.io/sregistry/docs/plugins/
-  ## Example: 
+  ## Example:
   ## - name: "custom-plugin"
   ##   configMap: "plugin-cm"
   ##
@@ -300,7 +300,7 @@ tolerations: []
 resources:
   limits: {}
   #  cpu: 250m
-  #  memory: 256Mi 
+  #  memory: 256Mi
   requests: {}
   #  cpu: 250m
   #  memory: 256Mi

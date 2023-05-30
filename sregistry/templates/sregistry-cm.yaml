@@ -7,7 +7,7 @@ metadata:
 data:
   secrets.py: |-
     SECRET_KEY = {{ randAlphaNum 50 | quote }}
- 
+
     {{- range .Values.auth.enabled }}
     SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_KEY = {{ .key | quote }}
     SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_SECRET = {{ .secret | quote }}
@@ -18,7 +18,7 @@ data:
 
   config.py: |-
     """
-    
+
     Copyright (C) 2017-2020 Vanessa Sochat.
 
     This Source Code Form is subject to the terms of the
@@ -39,7 +39,7 @@ data:
     {{- range .Values.auth.enabled }}
     {{ if has .name $disabled }}{{ $disabled = without $disabled .name }}{{- end }}
     {{- end }}
-    
+
     {{- range $disabled }}
     ENABLE_{{ upper . }}_AUTH=False
     {{- end }}
@@ -120,8 +120,8 @@ data:
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": "postgres",
-            "USER": {{ .Values.postgresql.postgresqlUsername | quote }},
-            "PASSWORD": {{ .Values.postgresql.postgresqlPassword | quote }},
+            "USER": {{ .Values.postgresql.auth.username | quote }},
+            "PASSWORD": {{ .Values.postgresql.auth.password | quote }},
             "HOST": {{ .Values.postgresql.hostname | quote }},
             "PORT": {{ .Values.postgresql.service.port | quote }},
         }
