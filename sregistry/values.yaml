@@ -245,7 +245,7 @@ persistence:
 auth:
 
   # List of plugins available in the container
-  plugins: [ "google", "twitter", "github", "gitlab", "bitbucket" ]
+  plugins: [ "google", "twitter", "github", "gitlab", "bitbucket", "github_enterprise" ]
 
   ## For custom plugins define list of ConfigMaps to mount into sregistry
   ## For writing a plugin refer to docs: https://singularityhub.github.io/sregistry/docs/plugins/

@@ -7,7 +7,6 @@ metadata:
 data:
   secrets.py: |-
     SECRET_KEY = {{ randAlphaNum 50 | quote }}
-
     {{- range .Values.auth.enabled }}
     SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_KEY = {{ .key | quote }}
     SOCIAL_AUTH_{{ upper .name }}{{ include "oauth.prefix" .name }}_SECRET = {{ .secret | quote }}
@@ -138,7 +137,8 @@ data:
     MINIO_SIGNED_URL_EXPIRE_MINUTES = 5
     MINIO_REGION = {{ .Values.minio.region | quote }}
     MINIO_MULTIPART_UPLOAD = True
-
+    MINIO_ROOT_USER = {{ .Values.minio.auth.rootUser | quote }}
+    MINIO_ROOT_PASSWORD = {{ .Values.minio.auth.rootPassword | quote }}
     DISABLE_MINIO_CLEANUP = False
 
     # Logging
