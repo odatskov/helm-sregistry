@@ -72,9 +72,9 @@ Environment to propagate within sregistry containers
 {{- define "sregistry.env" -}}
 env:
 - name: MINIO_ACCESS_KEY
-  value: {{ .Values.minio.accessKey.password | quote }}
+  value: {{ .Values.minio.auth.rootUser | quote }}
 - name: MINIO_SECRET_KEY
-  value: {{ .Values.minio.secretKey.password | quote }}
+  value: {{ .Values.minio.auth.rootPassword | quote }}
 - name: REDIS_URL
   value: "redis://{{ .Values.redis.hostname }}/0"
 {{ toYaml .Values.minio.extraEnv }}
